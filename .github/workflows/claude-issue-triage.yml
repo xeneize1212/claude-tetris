@@ -94,5 +94,10 @@ jobs:
                **Enfoque sugerido:** (idea general de cómo abordarlo en código, SIN
                implementarlo — es solo diagnóstico para que el equipo decida la solución)
 
+               Cada sección debe estar redactada en Markdown real: usa backticks (`) para
+               nombres de funciones/variables (ej. `collide()`, `dropInterval`), listas con
+               `-` cuando enumeres varios puntos, y saltos de línea reales entre secciones
+               (no texto plano ni `\n` literales pegados en una sola línea).
+
             No modifiques el título ni el cuerpo del issue, no edites archivos del repo, y no
             abras pull requests. Tu única salida son los labels y el comentario de diagnóstico.
