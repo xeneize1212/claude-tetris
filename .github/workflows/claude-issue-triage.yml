@@ -46,7 +46,7 @@ jobs:
         with:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
 
-          claude_args: '--allowed-tools "Bash(gh issue edit *),Bash(gh issue comment *)"'
+          claude_args: '--allowed-tools "Bash(gh issue view *),Bash(gh issue edit *),Bash(gh issue comment *)"'
 
           prompt: |
             Estás analizando el issue #${{ github.event.issue.number }} de este repositorio
