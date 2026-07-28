@@ -17,6 +17,7 @@ jobs:
       - name: Asegurar labels de triage
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: ${{ github.repository }}
         run: |
           gh label create "bug" --color "d73a4a" --description "Algo no funciona como se espera" --force
           gh label create "mejora" --color "a2eeef" --description "Nueva funcionalidad o mejora" --force
