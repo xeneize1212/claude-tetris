@@ -1,0 +1,97 @@
+name: Claude Issue Triage
+
+on:
+  issues:
+    types: [opened, edited]
+
+concurrency:
+  group: claude-issue-triage-${{ github.event.issue.number }}
+  cancel-in-progress: true
+
+jobs:
+  ensure-labels:
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+    steps:
+      - name: Asegurar labels de triage
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh label create "bug" --color "d73a4a" --description "Algo no funciona como se espera" --force
+          gh label create "mejora" --color "a2eeef" --description "Nueva funcionalidad o mejora" --force
+          gh label create "pregunta" --color "d876e3" --description "Consulta que no requiere cambios de código" --force
+          gh label create "renderizado" --color "5319e7" --description "Canvas, dibujo, colores, ghost piece" --force
+          gh label create "controles" --color "e99695" --description "Input de teclado, pausa, atajos" --force
+          gh label create "logica-piezas" --color "0e8a16" --description "Piezas, rotación, colisión, spawn" --force
+          gh label create "puntuacion-nivel" --color "fbca04" --description "Score, líneas, nivel, velocidad de caída" --force
+          gh label create "rendimiento" --color "c5def5" --description "Loop de juego, FPS, requestAnimationFrame" --force
+
+  triage:
+    needs: ensure-labels
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      issues: write
+      id-token: write
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Analizar issue con Claude
+        uses: anthropics/claude-code-action@v1
+        with:
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+
+          claude_args: '--allowed-tools "Bash(gh issue edit *),Bash(gh issue comment *)"'
+
+          prompt: |
+            Estás analizando el issue #${{ github.event.issue.number }} de este repositorio
+            ("${{ github.event.issue.title }}"). Es un juego de Tetris en JavaScript vanilla
+            (sin build ni dependencias): `index.html` + `style.css` + `game.js`. Lee `CLAUDE.md`
+            en la raíz del repo para entender la arquitectura (estado global en `game.js`,
+            `loop()`, `collide()`, `rotateCW()`, `clearLines()`, etc.) antes de diagnosticar.
+
+            Tu tarea, en este orden:
+
+            1. Leé el contenido completo del issue con:
+               `gh issue view ${{ github.event.issue.number }}`
+
+            2. Elegí uno o más labels que apliquen, SOLO de esta lista fija (no crees labels
+               nuevos ni uses otros nombres):
+               bug, mejora, pregunta, renderizado, controles, logica-piezas, puntuacion-nivel,
+               rendimiento
+
+               Guía de asignación:
+               - `bug`: algo se comporta distinto de lo esperado.
+               - `mejora`: pide una funcionalidad nueva o un cambio de comportamiento deseado.
+               - `pregunta`: es una duda, no describe un problema accionable en código.
+               - `renderizado`: relacionado a `draw()`, canvas, colores, ghost piece.
+               - `controles`: relacionado a input de teclado, `keydown`, pausa.
+               - `logica-piezas`: relacionado a `PIECES`, `rotateCW`, `tryRotate`, `collide`, `spawn`.
+               - `puntuacion-nivel`: relacionado a `clearLines`, `score`, `level`, `dropInterval`.
+               - `rendimiento`: relacionado al loop de juego, FPS, `requestAnimationFrame`.
+
+               Aplicá los labels elegidos con:
+               `gh issue edit ${{ github.event.issue.number }} --add-label "label1,label2"`
+
+            3. Publicá un comentario de diagnóstico en español con:
+               `gh issue comment ${{ github.event.issue.number }} --body "..."`
+
+               El comentario debe tener EXACTAMENTE esta estructura en Markdown:
+
+               ## Diagnóstico automático
+
+               **Resumen:** (1-2 líneas resumiendo el problema o pedido)
+
+               **Área afectada:** (módulo/función de `game.js` involucrada, si aplica)
+
+               **Causa probable:** (hipótesis técnica concreta, basada en el código real)
+
+               **Enfoque sugerido:** (idea general de cómo abordarlo en código, SIN
+               implementarlo — es solo diagnóstico para que el equipo decida la solución)
+
+            No modifiques el título ni el cuerpo del issue, no edites archivos del repo, y no
+            abras pull requests. Tu única salida son los labels y el comentario de diagnóstico.
