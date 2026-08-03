@@ -34,6 +34,18 @@
           <canvas id="next-canvas" width="120" height="120"></canvas>
         </div>
 
+        <!-- feature: records -->
+        <div class="panel-section rec-panel">
+          <span class="label">RECORDS</span>
+          <ol id="rec-list" class="rec-list"></ol>
+          <div class="rec-stats">
+            <span>Mejor combo: <strong id="rec-best-combo">0</strong></span>
+            <span>Máx. líneas: <strong id="rec-max-lines">0</strong></span>
+          </div>
+          <button id="rec-reset-btn" class="rec-reset-btn">Resetear records</button>
+        </div>
+        <!-- /feature: records -->
+
         <div class="panel-section controls">
           <span class="label">CONTROLS</span>
           <ul>
@@ -50,6 +62,12 @@
         <div class="overlay-box">
           <p id="overlay-title">GAME OVER</p>
           <p id="overlay-score"></p>
+          <!-- feature: records -->
+          <div id="rec-form" class="rec-form hidden">
+            <input id="rec-name-input" type="text" maxlength="10" placeholder="Tu nombre" />
+            <button id="rec-submit-btn">Guardar récord</button>
+          </div>
+          <!-- /feature: records -->
           <button id="restart-btn">Reiniciar</button>
         </div>
       </div>
