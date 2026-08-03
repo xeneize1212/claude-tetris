@@ -225,3 +225,83 @@ kbd {
 #restart-btn:hover {
   background: var(--btn-hover);
 }
+
+/* ---- Menú de pausa ---- */
+.pm-menu {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 220px;
+}
+
+.pm-menu.hidden,
+.pm-controls.hidden {
+  display: none;
+}
+
+.pm-option {
+  background: var(--kbd-bg);
+  border: 1px solid var(--kbd-border);
+  border-radius: 6px;
+  padding: 10px 14px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text);
+  cursor: pointer;
+  letter-spacing: 0.5px;
+  transition: background 0.15s, border-color 0.15s;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-family: inherit;
+}
+
+.pm-option:hover {
+  border-color: var(--accent);
+}
+
+.pm-option-active {
+  border-color: var(--accent);
+  background: var(--kbd-border);
+}
+
+.pm-option-level {
+  cursor: default;
+}
+
+.pm-level-stepper {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-family: 'Courier New', Courier, monospace;
+  color: var(--accent);
+}
+
+.pm-level-arrow {
+  color: var(--label-color);
+  font-size: 12px;
+}
+
+.pm-controls {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  align-items: center;
+  width: 220px;
+}
+
+.pm-controls ul {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+}
+
+.pm-controls li {
+  font-size: 13px;
+  color: var(--control-text);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
