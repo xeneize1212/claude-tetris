@@ -29,6 +29,8 @@ const PIECES = [
 ];
 
 const LINE_SCORES = [0, 100, 300, 500, 800];
+const REC_STORAGE_KEY = 'tetrisRecords';
+const REC_MAX_ENTRIES = 5;
 
 const canvas = document.getElementById('board');
 const ctx = canvas.getContext('2d');
@@ -42,8 +44,18 @@ const overlayTitle = document.getElementById('overlay-title');
 const overlayScore = document.getElementById('overlay-score');
 const restartBtn = document.getElementById('restart-btn');
 const themeToggleBtn = document.getElementById('theme-toggle');
+const recListEl = document.getElementById('rec-list');
+const recFormEl = document.getElementById('rec-form');
+const recNameInput = document.getElementById('rec-name-input');
+const recSubmitBtn = document.getElementById('rec-submit-btn');
+const recResetBtn = document.getElementById('rec-reset-btn');
+const recBestComboEl = document.getElementById('rec-best-combo');
+const recMaxLinesEl = document.getElementById('rec-max-lines');
 
 let board, current, next, score, lines, level, paused, gameOver, lastTime, dropAccum, dropInterval, animId;
+
+// --- Records ---
+let recComboCount, recBestComboRun, recLastSubmittedDate = null;
 
 function createBoard() {
   return Array.from({ length: ROWS }, () => new Array(COLS).fill(0));
@@ -111,8 +123,70 @@ function clearLines() {
     score += (LINE_SCORES[cleared] || 0) * level;
     level = Math.floor(lines / 10) + 1;
     dropInterval = Math.max(100, 1000 - (level - 1) * 90);
+    recComboCount++;
+    recBestComboRun = Math.max(recBestComboRun, recComboCount);
     updateHUD();
+  } else {
+    recComboCount = 0;
   }
+}
+
+function recLoad() {
+  try {
+    const raw = localStorage.getItem(REC_STORAGE_KEY);
+    if (!raw) return { scores: [], bestCombo: 0, maxLines: 0 };
+    const parsed = JSON.parse(raw);
+    return {
+      scores: Array.isArray(parsed.scores) ? parsed.scores : [],
+      bestCombo: parsed.bestCombo || 0,
+      maxLines: parsed.maxLines || 0,
+    };
+  } catch {
+    return { scores: [], bestCombo: 0, maxLines: 0 };
+  }
+}
+
+function recSave(data) {
+  localStorage.setItem(REC_STORAGE_KEY, JSON.stringify(data));
+}
+
+function recQualifies(candidateScore) {
+  const data = recLoad();
+  return data.scores.length < REC_MAX_ENTRIES ||
+    candidateScore > Math.min(...data.scores.map(s => s.score));
+}
+
+function recSubmit(name) {
+  const data = recLoad();
+  const entry = { name: name || 'ANON', score, lines, date: Date.now() };
+  data.scores.push(entry);
+  data.scores.sort((a, b) => b.score - a.score);
+  data.scores = data.scores.slice(0, REC_MAX_ENTRIES);
+  data.bestCombo = Math.max(data.bestCombo, recBestComboRun);
+  data.maxLines = Math.max(data.maxLines, lines);
+  recSave(data);
+  recLastSubmittedDate = entry.date;
+  recRender();
+}
+
+function recReset() {
+  localStorage.removeItem(REC_STORAGE_KEY);
+  recRender();
+}
+
+function recRender() {
+  const data = recLoad();
+  recListEl.innerHTML = '';
+  data.scores.forEach((entry, i) => {
+    const li = document.createElement('li');
+    li.textContent = `${i + 1}. ${entry.name} — ${entry.score.toLocaleString()}`;
+    if (entry.date === recLastSubmittedDate) {
+      li.classList.add('rec-highlight');
+    }
+    recListEl.appendChild(li);
+  });
+  recBestComboEl.textContent = data.bestCombo;
+  recMaxLinesEl.textContent = data.maxLines;
 }
 
 function ghostY() {
@@ -226,6 +300,8 @@ function endGame() {
   cancelAnimationFrame(animId);
   overlayTitle.textContent = 'GAME OVER';
   overlayScore.textContent = `Puntuación: ${score.toLocaleString()}`;
+  recFormEl.classList.toggle('hidden', !recQualifies(score));
+  recRender();
   overlay.classList.remove('hidden');
 }
 
@@ -286,6 +362,9 @@ function init() {
   spawn();
   updateHUD();
   overlay.classList.add('hidden');
+  recComboCount = 0;
+  recBestComboRun = 0;
+  recFormEl.classList.add('hidden');
   cancelAnimationFrame(animId);
   animId = requestAnimationFrame(loop);
 }
@@ -320,3 +399,10 @@ themeToggleBtn.addEventListener('click', toggleTheme);
 
 applyTheme(localStorage.getItem('theme') || 'dark');
 init();
+
+recSubmitBtn.addEventListener('click', () => {
+  recSubmit(recNameInput.value.trim());
+  recFormEl.classList.add('hidden');
+});
+recResetBtn.addEventListener('click', recReset);
+recRender();
