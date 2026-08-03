@@ -93,6 +93,27 @@ body {
   border-color: var(--accent);
 }
 
+#skin-toggle {
+  background: var(--kbd-bg);
+  border: 1px solid var(--kbd-border);
+  border-radius: 20px;
+  padding: 0 12px;
+  height: 24px;
+  cursor: pointer;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--kbd-text);
+  transition: background 0.15s, border-color 0.15s;
+}
+
+#skin-toggle:hover {
+  border-color: var(--accent);
+}
+
 .game-container {
   position: relative;
   display: flex;
